@@ -380,9 +380,21 @@ class Router {
     });
   }
 
+  resetRoutingTable() {
+    this.routingTable = new Map();
+    this.links = [];
+  }
+
+
   static initRoutingTableAll() {
     Router.allRouters.forEach((x) => {
       x.initRoutingTable();
+    });
+  }
+
+  static resetRoutingTableAll(){
+    Router.allRouters.forEach((x) => {
+      x.resetRoutingTable();
     });
   }
 
@@ -876,7 +888,7 @@ class Router {
   }
 }
 
-function simpleDraw() {
+function simpleDraw(parent = undefined) {
   Router.allRouters[0].coords.translate();
   let canvas = Router.newCanvas();
   Link.drawAllLinks(canvas);
@@ -887,7 +899,8 @@ function simpleDraw() {
   let co = document.createElement("div");
   co.className = "combouter";
   co.appendChild(wr);
-  document.body.appendChild(co);
+  if(parent == undefined) parent = document.body;
+  parent.appendChild(co);
 }
 
 //**********************************TEST ***************************************/

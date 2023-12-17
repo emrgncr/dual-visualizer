@@ -1,18 +1,247 @@
 <!DOCTYPE html>
 <html>
-<head>
-  <title>Dual HTML</title>
-  <link rel="stylesheet" href="dual.css">
-  <script src="dual.js" ></script>
-</head>
-<body>
+  <head>
+    <title>Dual HTML</title>
+    <link rel="stylesheet" href="dual.css" />
+    <script src="dual.js"></script>
+  </head>
 
-    <!-- <canvas width="1000" height="1000" id="maincanvas"> -->
+  <body>
+    <div class="scrollable" style="max-height: 800px">
+      <div
+        class="inner"
+        style="width: 3000px; height: 3000px"
+        id="builder"
+      ></div>
+    </div>
 
+    <div style="display: flex">
+      <form id="addnodeform" style="display: block; flex: 1">
+        <h3>Add a node</h3>
+        <label for="nodeid"
+          >node id: (node with id = j becomes the distance node)</label
+        >
+        <br />
+        <input type="text" name="nodeid" />
+        <br />
+        <br />
+        <label for="nodex">coords x:</label>
+        <input type="number" name="nodex" step="1" />
+        <br />
+        <br />
+        <label for="nodey">coords y:</label>
+        <input type="number" name="nodey" step="1" />
+        <br />
+        <br />
+        <button type="button" onclick="addNodeForm()">Add node</button>
+      </form>
+      <form id="addlinkform" style="display: block; flex: 1">
+        <h3>Add a link</h3>
+        <label for="linkcost">link cost</label>
+        <br />
+        <input type="number" name="linkcost" />
+        <br />
+        <br />
+        <label for="linka">node 1:</label>
+        <input type="text" name="linka" />
+        <br />
+        <br />
+        <label for="linkb">node 2:</label>
+        <input type="text" name="linkb" />
+        <br />
+        <br />
+        <button type="button" onclick="addLinkForm()">Add link</button>
+      </form>
+    </div>
+    <br />
+    <button onclick="doExample6()">Load example topology</button>
+    <br />
+    <br />
+    <button onclick="doInit()">Prepare initial state</button>
+    <p>only prepare initial state when you are satisfied with your topology!</p>
+    <br />
+    <br />
+    <div id="inb"></div>
+    <br />
+    <br />
+    <form>
+      <label for="linkrm">Links to remove or update:</label>
+      <br />
+      <input name="linkrm" type="text" />
+      <br />
+      <p>input structure: (node a, nodeb, cost)</p>
+      <p>For example (a, d, 7) sets the link cost of a - d to 7</p>
+      <p>(a, d, x) removes the link between a and b</p>
+      <p>
+        example change: (a, d, 2) (c, d, x) (a, c, 9) updates 3 links
+        simultaneously.
+      </p>
+      <p>
+        Only do link changes after you prepare initial state!
+      </p>
+      <br />
+      <br />
+      <button type="button" onclick="onLinkrm()">Do link changes!</button>
+    </form>
+  </body>
 
-<script>
-    example6();
-</script>
+  <script>
+    function doExample6() {
+      let a = new Router("a", new Coords(0, 0));
+  let b = new Router("b", new Coords(0, 2));
+  let c = new Router("c", new Coords(1, 0));
+  let d = new Router("d", new Coords(1, 2));
+  let e = new Router("e", new Coords(2, 1));
+  let f = new Router("f", new Coords(3, 0));
+  let g = new Router("g", new Coords(3, 2));
+  let h = new Router("h", new Coords(4, 0));
+  let i = new Router("i", new Coords(4, 2));
+  let j = new Router("j", new Coords(5, 1));
 
-</body>
+  new Link(a, b, 1);
+  new Link(b, d, 1);
+  new Link(d, c, 1);
+  new Link(c, a, 10);
+  new Link(c, j, 2);
+  new Link(j, e, 3);
+  new Link(e, f, 2);
+  new Link(f, g, 1);
+  new Link(g, h, 1);
+  new Link(h, i, 2);
+  new Link(i, j, 1);
+  new Link(d, g, 3);
+
+      redrawCanv();
+    }
+
+    function onLinkrm() {
+      let val = document.getElementsByName("linkrm")[0];
+      let torm = parseLinkrm(val.value);
+      for (let update of torm) {
+        // try to get link
+        let linkf = Link.allLinks.filter(
+          (x) =>
+            (x.a.id == update[0] && x.b.id == update[1]) ||
+            (x.b.id == update[0] && x.a.id == update[1])
+        );
+        if (linkf.length < 1) continue;
+        if (update[2] == "x") {
+          linkf[0].removeSelf();
+        } else {
+          linkf[0].updateSelf(Number(update[2]));
+        }
+      }
+      Router.draw = true;
+      Router.doStep();
+    }
+
+    /**
+     * @param {String} x
+     */
+    function parseLinkrm(x) {
+      const regex = /\((.*?)\)/g;
+      const groups = x.match(regex);
+      if (!groups) return [];
+
+      const parsedGroups = groups.map((group) => {
+        const values = group
+          .slice(1, -1)
+          .split(",")
+          .map((value) => value.trim());
+        return values;
+      });
+
+      return parsedGroups;
+    }
+
+    function doInit() {
+      let dist = Router.allRouters.filter((x) => x.id == "j");
+      if (dist.length < 1) return;
+      let j = dist[0];
+      j.distance = new DistanceState(0, 0, j);
+      j.ignoreall = true;
+      Router.draw = false;
+      j.sendUpdates();
+      Router.doStep();
+      document.getElementById("inb").innerHTML = "";
+      simpleDraw(document.getElementById("inb"));
+    }
+
+    function redrawCanv() {
+      let canv = document.getElementById("builder");
+      while (canv.firstChild) {
+        canv.removeChild(canv.firstChild);
+      }
+
+      Router.resetRoutingTableAll();
+
+      Link.setupLinks();
+      Router.initRoutingTableAll();
+
+      Coords.normalize();
+      Link.drawAllLinks(canv);
+      Router.drawAll(canv);
+
+      [...canv.children]
+        .filter((x) => x.classList.contains("circle"))
+        .forEach((x) => {
+          x.addEventListener("contextmenu", (e) => {
+            e.preventDefault();
+            let a1 = Router.allRouters.filter(
+              (y) => x.firstChild.innerText == y.id
+            )[0];
+            let i = Router.allRouters.indexOf(a1);
+            a1.links.forEach((l) => {
+              let a2 = Link.allLinks.indexOf(l);
+              Link.allLinks.splice(a2, 1);
+            });
+            if (i > -1) {
+              Router.allRouters.splice(i, 1);
+            }
+            redrawCanv();
+          });
+        });
+    }
+    function addNodeForm() {
+      /**
+       * @type {HTMLInputElement}
+       */
+      let id = document.getElementsByName("nodeid")[0];
+      let x = document.getElementsByName("nodex")[0];
+      let y = document.getElementsByName("nodey")[0];
+
+      if (Router.allRouters.filter((x) => x.id == id.value).length > 0) {
+        console.error("this id exists");
+      } else {
+        new Router(id.value, new Coords(Number(x.value), Number(y.value)));
+      }
+      redrawCanv();
+    }
+
+    function addLinkForm() {
+      /**
+       * @type {HTMLInputElement}
+       */
+      let cost = document.getElementsByName("linkcost")[0];
+      let la = document.getElementsByName("linka")[0];
+      let lb = document.getElementsByName("linkb")[0];
+
+      if (
+        Link.allLinks.filter(
+          (x) =>
+            (x.a.id == la.value && x.b.id == lb.value) ||
+            (x.b.id == la.value && x.a.id == lb.value)
+        ).length > 0
+      ) {
+        console.error("this link exists");
+      } else {
+        let laa = Router.allRouters.filter((x) => x.id == la.value)[0];
+        let lbb = Router.allRouters.filter((x) => x.id == lb.value)[0];
+        if (laa != undefined && lbb != undefined) {
+          new Link(laa, lbb, Number(cost.value));
+        }
+      }
+      redrawCanv();
+    }
+  </script>
 </html>
