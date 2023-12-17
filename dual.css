@@ -1,0 +1,29 @@
+/* Scrollable div class */
+.scrollable {
+    overflow: auto;
+}
+
+/* Circle class with hover effect */
+.circle {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    background-color: blue;
+    position: relative;
+}
+
+.circle:hover .textbox {
+    display: block;
+}
+
+/* Text box class */
+.textbox {
+    display: none;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: white;
+    padding: 10px;
+    border: 1px solid black;
+}
