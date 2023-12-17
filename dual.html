@@ -76,9 +76,7 @@
         example change: (a, d, 2) (c, d, x) (a, c, 9) updates 3 links
         simultaneously.
       </p>
-      <p>
-        Only do link changes after you prepare initial state!
-      </p>
+      <p>Only do link changes after you prepare initial state!</p>
       <br />
       <br />
       <button type="button" onclick="onLinkrm()">Do link changes!</button>
@@ -88,28 +86,28 @@
   <script>
     function doExample6() {
       let a = new Router("a", new Coords(0, 0));
-  let b = new Router("b", new Coords(0, 2));
-  let c = new Router("c", new Coords(1, 0));
-  let d = new Router("d", new Coords(1, 2));
-  let e = new Router("e", new Coords(2, 1));
-  let f = new Router("f", new Coords(3, 0));
-  let g = new Router("g", new Coords(3, 2));
-  let h = new Router("h", new Coords(4, 0));
-  let i = new Router("i", new Coords(4, 2));
-  let j = new Router("j", new Coords(5, 1));
+      let b = new Router("b", new Coords(0, 2));
+      let c = new Router("c", new Coords(1, 0));
+      let d = new Router("d", new Coords(1, 2));
+      let e = new Router("e", new Coords(2, 1));
+      let f = new Router("f", new Coords(3, 0));
+      let g = new Router("g", new Coords(3, 2));
+      let h = new Router("h", new Coords(4, 0));
+      let i = new Router("i", new Coords(4, 2));
+      let j = new Router("j", new Coords(5, 1));
 
-  new Link(a, b, 1);
-  new Link(b, d, 1);
-  new Link(d, c, 1);
-  new Link(c, a, 10);
-  new Link(c, j, 2);
-  new Link(j, e, 3);
-  new Link(e, f, 2);
-  new Link(f, g, 1);
-  new Link(g, h, 1);
-  new Link(h, i, 2);
-  new Link(i, j, 1);
-  new Link(d, g, 3);
+      new Link(a, b, 1);
+      new Link(b, d, 1);
+      new Link(d, c, 1);
+      new Link(c, a, 10);
+      new Link(c, j, 2);
+      new Link(j, e, 3);
+      new Link(e, f, 2);
+      new Link(f, g, 1);
+      new Link(g, h, 1);
+      new Link(h, i, 2);
+      new Link(i, j, 1);
+      new Link(d, g, 3);
 
       redrawCanv();
     }
