@@ -1,29 +1,140 @@
 /* Scrollable div class */
+.inner {
+  overflow: visible;
+  display: block;
+  position: relative;
+  margin: auto;
+}
 .scrollable {
-    overflow: auto;
+  /* max-width: 50%; */
+  /* width: 80%; */
+  flex: 4;
+  max-height: 1000px;
+  overflow: scroll;
+  display: block;
+  position: relative;
+  padding: 100px;
+  border-style: solid;
+  border-width: 3px;
+  border-radius: 10px;
+  border-color: black;
+  margin: 8px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.combouter {
+  display: flex;
+  width: 80%;
+  max-height: 1000px;
+  margin: 32px;
+  overflow-y: scroll;
+}
+
+.logdiv {
+  /* width: 18%; */
+  flex: 1;
+  max-height: 600px;
+  text-overflow: clip;
+  overflow-y: scroll;
+  display: flex;
+  padding: 16px;
+  border-style: solid;
+  border-width: 3px;
+  border-radius: 10px;
+  border-color: black;
+  margin: 8px;
+  flex-direction: column;
+}
+
+.cpink {
+  background-color: pink;
+}
+
+.complex-arrow {
+  --arrow-color: "red";
+  position: absolute;
+  display: inline-block;
+  width: 15px;
+  height: 50px;
+  border-width: 3px;
+  border-style: solid;
+  border-color: var(--arrow-color);
+  background-color: var(--arrow-color);
+  overflow-x: visible;
+  text-wrap: nowrap;
+  text-align: center;
+  white-space: nowrap;
+  text-align-last: center;
+}
+
+.complex-arrow::before {
+  content: "";
+  position: absolute;
+  top: -20px; /* Adjust distance between the arrowhead and the base */
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-left: 20px solid transparent; /* Adjust size as needed */
+  border-right: 20px solid transparent; /* Adjust size as needed */
+  border-bottom: 20px solid var(--arrow-color); /* Adjust size and color as needed */
+  transform: translateX(-50%) rotate(0deg); /* Adjust rotation angle as needed */
+}
+
+.outer {
+  margin: 8px;
+  padding: 8px;
 }
 
 /* Circle class with hover effect */
 .circle {
-    width: 100px;
-    height: 100px;
-    border-radius: 50%;
-    background-color: blue;
-    position: relative;
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  background-color: blue;
+  position: absolute; /* Change this line */
+  overflow: visible;
+  text-align: center;
+  .textbox {
+    z-index: 1000;
+  }
+}
+
+.scircle {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background-color: snow;
+  border-width: 2px;
+  border-color: black;
+  border-style: solid;
+  position: absolute; /* Change this line */
+  overflow: visible;
+  text-align: center;
+  .textbox {
+    z-index: 1000;
+    left: 35px;
+  }
+}
+
+.scircle:hover .textbox {
+  display: block;
 }
 
 .circle:hover .textbox {
-    display: block;
+  display: block;
 }
 
 /* Text box class */
 .textbox {
-    display: none;
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background-color: white;
-    padding: 10px;
-    border: 1px solid black;
+  display: none;
+  position: absolute;
+  top: 0;
+  left: 100px;
+  z-index: 500;
+  background-color: white;
+  padding: 20px;
+  border: 1px solid black;
+  max-height: 320px;
+  width: 180px;
 }

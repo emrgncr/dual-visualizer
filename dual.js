@@ -1,4 +1,4 @@
-const arrowpadding = 30;
+const arrowpadding = 70;
 
 /**
  * Shuffle the elements of an array randomly.
@@ -30,18 +30,31 @@ function drawCircle(canvas, radius, centerX, centerY) {
 
 /**
  * Draw a straight line on a canvas between two given points.
- * @param {HTMLCanvasElement} canvas - The canvas element to draw on.
+ * @param {HTMLDivElement} canvas - The canvas element to draw on.
  * @param {number} startX - The x-coordinate of the starting point of the line.
  * @param {number} startY - The y-coordinate of the starting point of the line.
  * @param {number} endX - The x-coordinate of the ending point of the line.
  * @param {number} endY - The y-coordinate of the ending point of the line.
  */
-function drawLine(canvas, startX, startY, endX, endY) {
-  const context = canvas.getContext("2d");
-  context.beginPath();
-  context.moveTo(startX, startY);
-  context.lineTo(endX, endY);
-  context.stroke();
+function drawLine(canvas, startX, startY, endX, endY, color = "black") {
+  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  svg.setAttribute("width", "100%");
+  svg.setAttribute("height", "100%");
+  svg.style.position = "absolute";
+  svg.style.top = "50px";
+  svg.style.left = "50px";
+
+  const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+  line.setAttribute("x1", startX);
+  line.setAttribute("y1", startY);
+  line.setAttribute("x2", endX);
+  line.setAttribute("y2", endY);
+  line.setAttribute("stroke", color);
+
+  svg.style.zIndex = -1;
+
+  svg.appendChild(line);
+  canvas.appendChild(svg);
 }
 
 /**
@@ -63,55 +76,45 @@ function writeText(canvas, text, x, y) {
 
 /**
  * Draw an arrow on a canvas between two given points with padding.
- * @param {HTMLCanvasElement} canvas - The canvas element to draw on.
+ * @param {HTMLDivElement} canvas - The canvas element to draw on.
  * @param {number} startX - The x-coordinate of the starting point of the arrow.
  * @param {number} startY - The y-coordinate of the starting point of the arrow.
  * @param {number} endX - The x-coordinate of the ending point of the arrow.
  * @param {number} endY - The y-coordinate of the ending point of the arrow.
  * @param {number} padding - The padding value for the arrow.
  */
-function drawArrow(canvas, startX, startY, endX, endY, padding) {
-  const context = canvas.getContext("2d");
+function drawArrow(
+  canvas,
+  startX,
+  startY,
+  endX,
+  endY,
+  cb,
+  padding = 70,
+  color = "blue"
+) {
+  const angle = Math.atan2(endY - startY, endX - startX) * (180 / Math.PI);
+  const arrow = document.createElement("div");
+  arrow.classList.add("complex-arrow");
+  arrow.style.transform = `rotate(${angle + 90}deg)`;
 
-  // Calculate the angle and length of the arrow
-  const angle = Math.atan2(endY - startY, endX - startX);
-  const length = Math.sqrt((endX - startX) ** 2 + (endY - startY) ** 2);
+  const shiftX =
+    ((endX - startX) * padding) /
+    Math.sqrt((endX - startX) ** 2 + (endY - startY) ** 2);
+  const shiftY =
+    ((endY - startY) * padding) /
+    Math.sqrt((endX - startX) ** 2 + (endY - startY) ** 2);
 
-  // Calculate the padded start and end points
-  const paddedStartX = startX + padding * Math.cos(angle);
-  const paddedStartY = startY + padding * Math.sin(angle);
-  const paddedEndX = endX + padding * Math.cos(angle);
-  const paddedEndY = endY + padding * Math.sin(angle);
+  arrow.style.top = `${startY + 50 - 50 / 2 + shiftY}px`;
+  arrow.style.left = `${startX + 50 - 15 / 2 + shiftX}px`;
 
-  // Draw the line
-  const arrowheadSize = 60;
-  const arrowheadX = paddedEndX - arrowheadSize * Math.cos(angle);
-  const arrowheadY = paddedEndY - arrowheadSize * Math.sin(angle);
+  arrow.style.setProperty("--arrow-color", color);
+  setTimeout;
+  if (cb != undefined) {
+    cb(arrow);
+  }
 
-  const _arrowheadX = paddedEndX - (arrowheadSize + 12) * Math.cos(angle);
-  const _arrowheadY = paddedEndY - (arrowheadSize + 12) * Math.sin(angle);
-
-  context.beginPath();
-  context.moveTo(paddedStartX, paddedStartY);
-  context.lineTo(_arrowheadX, _arrowheadY);
-  let prew = context.lineWidth;
-  context.lineWidth = 12;
-  context.stroke();
-  context.lineWidth = prew;
-
-  // Draw the arrowhead
-  context.beginPath();
-  context.moveTo(arrowheadX, arrowheadY);
-  context.lineTo(
-    arrowheadX - arrowheadSize * Math.cos(angle - Math.PI / 6),
-    arrowheadY - arrowheadSize * Math.sin(angle - Math.PI / 6)
-  );
-  context.lineTo(
-    arrowheadX - arrowheadSize * Math.cos(angle + Math.PI / 6),
-    arrowheadY - arrowheadSize * Math.sin(angle + Math.PI / 6)
-  );
-  context.closePath();
-  context.fill();
+  canvas.appendChild(arrow);
 }
 
 class Coords {
@@ -125,13 +128,37 @@ class Coords {
     this.y = y;
   }
 
+  static minx = 0;
+  static maxx = null;
+  static miny = 0;
+  static maxy = 100;
+
+  static normalize() {
+    let xs = Router.allRouters.map((x) => x.coords.x);
+    let ys = Router.allRouters.map((x) => x.coords.y);
+    console.log(xs);
+    // Find the minimum and maximum values for xs and ys
+    let minX = Math.min(...xs);
+    let maxX = Math.max(...xs);
+    let minY = Math.min(...ys);
+    let maxY = Math.max(...ys);
+
+    // Set the minimum and maximum values to the related static variables
+    Coords.minx = minX;
+    Coords.maxx = maxX;
+    Coords.miny = minY;
+    Coords.maxy = maxY;
+  }
+
   static routerScaleFactor = 200;
-  static routerPadding = 100;
+  static routerPadding = 0;
 
   translate() {
+    if (Coords.maxx === null) Coords.normalize();
+    console.log("COORDS", Coords.minx);
     return new Coords(
-      Coords.routerScaleFactor + this.x * Coords.routerScaleFactor,
-      Coords.routerScaleFactor + this.y * Coords.routerScaleFactor
+      Coords.routerPadding + (this.x - Coords.minx) * Coords.routerScaleFactor,
+      Coords.routerPadding + (this.y - Coords.miny) * Coords.routerScaleFactor
     );
   }
 }
@@ -173,12 +200,27 @@ class Link {
   }
 
   drawLink(canvas) {
-    canvas.getContext("2d").strokeStyle = "blue";
     let t = [this.a.coords.translate(), this.b.coords.translate()];
-    drawLine(canvas, t[0].x, t[0].y, t[1].x, t[1].y);
-    canvas.getContext("2d").strokeStyle = "black";
+    drawLine(canvas, t[0].x, t[0].y, t[1].x, t[1].y, "blue");
+    // canvas.getContext("2d").strokeStyle = "black";
     let center = [(t[0].x + t[1].x) / 2, (t[0].y + t[1].y) / 2];
-    writeText(canvas, this.cost, center[0] + 10, center[1] + 10);
+    let cnt = document.createElement("div");
+    cnt.className = "scircle";
+    cnt.style.left = `${center[0] + 50 - 15}px`;
+    cnt.style.top = `${center[1] + 50 - 15}px`;
+
+    let inn = document.createElement("div");
+    inn.className = "textbox";
+    inn.innerHTML = `
+    Link from ${this.a.id} - ${this.b.id} <br>
+    Cost: ${this.cost}<br>
+    `;
+    cnt.innerHTML = `${this.cost}`;
+    cnt.appendChild(inn);
+
+    canvas.appendChild(cnt);
+
+    // writeText(canvas, this.cost, center[0] + 10, center[1] + 10);
   }
 
   static drawAllLinks(canvas) {
@@ -195,6 +237,8 @@ class Link {
 
     this.a.firstReply = undefined;
     this.b.firstReply = undefined;
+    this.a.logs.push(`link to ${this.b.id} disappeared`);
+    this.b.logs.push(`link to ${this.a.id} disappeared`);
     this.a.runChecks();
     this.b.runChecks();
   }
@@ -202,6 +246,8 @@ class Link {
     this.cost = nc;
     this.a.firstReply = undefined;
     this.b.firstReply = undefined;
+    this.a.logs.push(`link cost to ${this.b.id} changed to ${nc}`);
+    this.b.logs.push(`link cost to ${this.a.id} changed to ${nc}`);
     this.a.runChecks();
     this.b.runChecks();
   }
@@ -235,7 +281,7 @@ class DistanceState {
    * @returns {boolean}
    */
   equals(x) {
-    console.log(this, x);
+    // console.log(this, x);
     return x.dist == this.dist && x.fd == this.fd && this.next == x.next;
   }
 }
@@ -306,6 +352,8 @@ class Router {
     this.ignoreall = false;
     this.firstReply = null;
 
+    this.logs = [];
+
     /**
      * not used
      * @type {Router[]}
@@ -352,39 +400,82 @@ class Router {
     return ret;
   }
 
-  drawSelf(canvas) {
+  drawSelf(canvas, logdiv = undefined) {
     let t = this.coords.translate();
     let radius = 60;
-    canvas.getContext("2d").fillStyle = this.state == 0 ? "green" : "red";
-    drawCircle(canvas, radius, t.x, t.y);
-    canvas.getContext("2d").fillStyle = "black";
-    writeText(canvas, this.id, t.x, t.y - 20);
-    writeText(
-      canvas,
-      this.distance.toString() +
-        " " +
-        (this.firstReply != null ? this.firstReply.id : "-"),
-      t.x,
-      t.y + 20
-    );
+    let color = this.state == 0 ? "green" : "red";
+    let circle = document.createElement("div");
+    circle.className = "circle";
+    circle.style.backgroundColor = color;
+    circle.style.top = t.y + "px";
+    circle.style.left = t.x + "px";
+
+    let p1 = document.createElement("p");
+    p1.innerText = this.id;
+    let p2 = document.createElement("p");
+    p2.innerText = this.distance.toString();
+    circle.appendChild(p1);
+    circle.appendChild(p2);
+
+    let tb = document.createElement("div");
+    tb.className = "textbox";
+    circle.appendChild(tb);
+
+    tb.innerHTML = `
+    Router: ${this.id}<br>
+    Routing Table: <br>
+    `;
+    this.routingTable.forEach((v, k) => (tb.innerHTML += `${k.id}: ${v}<br>`));
+    tb.innerHTML += `Distance:${this.distance.toString()} <br>
+    State: ${this.state} <br>
+    Received Responses (if in query mode): <br>
+    `;
+    this.queryStatus.forEach((v, k) => (tb.innerHTML += `${k.id}<br>`));
+
+    canvas.appendChild(circle);
+
+    if (logdiv !== undefined && this.logs.length > 0) {
+      let ul = document.createElement("ul");
+      logdiv.appendChild(ul);
+      let head = document.createElement("h4");
+      head.innerText = `${this.id}:`;
+      ul.appendChild(head);
+      this.logs.forEach((entry) => {
+        let li = document.createElement("li");
+        li.innerText = entry;
+        ul.appendChild(li);
+      });
+      // logdiv.appendChild(document.createElement("br"));
+    }
+    this.logs = [];
+    return;
   }
 
-  static drawAll(canvas) {
-    Router.allRouters.forEach((x) => x.drawSelf(canvas));
+  static drawAll(canvas, logdiv = undefined) {
+    Router.allRouters.forEach((x) => x.drawSelf(canvas, logdiv));
   }
 
   static newCanvas() {
-    let canv = document.createElement("canvas");
-    canv.width = 1800;
-    canv.height = 1000;
+    let canv = document.createElement("div");
+    canv.className = "inner";
+    const w = Coords.maxx * Coords.routerScaleFactor + 100 + 8;
+    const h = Coords.maxy * Coords.routerScaleFactor + 100 + 8;
+
+    // Set the width and height of the canv element
+    canv.style.width = w + "px";
+    canv.style.height = h + "px";
+
     return canv;
   }
 
   static newDrawing(callbacks) {
     if (Router.draw == false) return;
     let canvas = Router.newCanvas();
+    let logdiv = document.createElement("div");
+    logdiv.className = "logdiv";
+
     Link.drawAllLinks(canvas);
-    Router.drawAll(canvas);
+    Router.drawAll(canvas, logdiv);
     // filter callbacks with monke logic
     // group by senders
     /**
@@ -415,30 +506,49 @@ class Router {
     for (let cb of temp) {
       cb(canvas);
     }
-    document.body.appendChild(canvas);
+
+    let sc = document.createElement("div");
+    sc.className = "scrollable";
+    sc.appendChild(canvas);
+
+    let comb = document.createElement("div");
+    comb.className = "combouter";
+    comb.appendChild(sc);
+    comb.appendChild(logdiv);
+
+    document.body.appendChild(comb);
   }
 
   sendUpdates() {
+    this.logs.push(`send U=${this.distance.dist} to neighbours`);
     this.getNeighbors().forEach((x) => {
       Router.nextStep.push([
         [
           (canvas) => {
             // todo check x state
             let t = this.coords.translate();
-            canvas.getContext("2d").fillStyle = "pink";
-
             // check state cheat ?? (filter above)
             let t2 = x.coords.translate();
-            canvas.getContext("2d").fillStyle = "pink";
-            canvas.getContext("2d").strokeStyle = "pink";
-            drawArrow(canvas, t.x, t.y, t2.x, t2.y, arrowpadding);
-            canvas.getContext("2d").fillStyle = "black";
-            writeText(
+            drawArrow(
               canvas,
-              `U: ${this.distance.dist}`,
-              (t.x + t2.x) / 2,
-              (t.y + t2.y) / 2
+              t.x,
+              t.y,
+              t2.x,
+              t2.y,
+              (x) => {
+                let d =
+                  this.distance.dist == Infinity ? "∞" : this.distance.dist;
+                x.innerText = `U: ${d}`;
+              },
+              arrowpadding,
+              "Coral"
             );
+            // writeText(
+            //   canvas,
+            //   `U: ${this.distance.dist}`,
+            //   (t.x + t2.x) / 2,
+            //   (t.y + t2.y) / 2
+            // );
           },
           this,
           x,
@@ -449,12 +559,23 @@ class Router {
     });
   }
 
+  logRoutingTable() {
+    this.logs.push("Routing table:");
+    this.routingTable.forEach((v, k) => {
+      this.logs.push(`${k.id}: ${v}`);
+    });
+  }
+
   runChecks(ns = 2) {
     if (this.ignoreall) return;
     if (this.state != 0) {
       console.error("STATE IS NOT 0, SHOULD NOT RUN CHECKS!", this);
       return;
     }
+    this.logs.push("check FD satisfied");
+    this.logs.push(`Distance: ${this.distance.toString()}`);
+    this.logRoutingTable();
+
     // get minimum
     let min_dist = Infinity;
     let min_nh = null;
@@ -475,10 +596,12 @@ class Router {
         if (this.distance.dist != Infinity || this.distance.next != null) {
           this.distance.next = null;
           this.distance.dist = Infinity;
+          this.logs.push("fd satisfied");
           this.sendUpdates();
         }
       } else {
         // an update turned us to diffusion computations
+        this.logs.push("fd not satisfied");
         this.state = ns;
         this.startDiffuse();
         return;
@@ -486,6 +609,7 @@ class Router {
     } else {
       if (min_dist_fd >= this.distance.fd) {
         // start diffusing computation
+        this.logs.push("fd not satisfied");
         this.state = ns;
         this.startDiffuse();
         return;
@@ -498,6 +622,7 @@ class Router {
         let same = this.distance.equals(newDistance);
         if (!same) {
           this.distance = newDistance;
+          this.logs.push("fd satisfied");
           this.sendUpdates();
         }
       }
@@ -505,6 +630,7 @@ class Router {
   }
 
   startDiffuse() {
+    this.logs.push("start diffusing computations");
     this.distance.fd = Infinity;
     this.distance.dist = Infinity;
     // check if default next hop still exists
@@ -530,6 +656,7 @@ class Router {
 
     // set query state
     this.queryStatus = new Map();
+    this.logs.push(`send Q=${this.distance.dist} to neighbours`);
     for (let n of this.getNeighbors()) {
       this.sendQuery(n);
     }
@@ -544,18 +671,26 @@ class Router {
       [
         (canvas) => {
           let t = this.coords.translate();
-          canvas.getContext("2d").fillStyle = "orange";
           let t2 = target.coords.translate();
-          canvas.getContext("2d").fillStyle = "orange";
-          canvas.getContext("2d").strokeStyle = "orange";
-          drawArrow(canvas, t.x, t.y, t2.x, t2.y, arrowpadding);
-          canvas.getContext("2d").fillStyle = "black";
-          writeText(
+          drawArrow(
             canvas,
-            `Q: ${this.distance.dist}`,
-            (t.x + t2.x) / 2,
-            (t.y + t2.y) / 2
+            t.x,
+            t.y,
+            t2.x,
+            t2.y,
+            (x) => {
+              let d = this.distance.dist == Infinity ? "∞" : this.distance.dist;
+              x.innerText = `Q: ${d}`;
+            },
+            arrowpadding,
+            "crimson"
           );
+          // writeText(
+          //   canvas,
+          //   `Q: ${this.distance.dist}`,
+          //   (t.x + t2.x) / 2,
+          //   (t.y + t2.y) / 2
+          // );
         },
         this,
         target,
@@ -571,6 +706,7 @@ class Router {
    * @param {number} dist
    */
   getUpdate(x, dist) {
+    this.logs.push(`got U=${dist} from ${x.id}`);
     this.routingTable.set(x, dist);
     if (this.state == 0) {
       // at state 0 run checks
@@ -601,6 +737,7 @@ class Router {
    * @param {number} dist
    */
   processQuery(from, dist) {
+    this.logs.push(`got Q=${dist} from ${from.id}`);
     this.routingTable.set(from, dist);
     switch (this.state) {
       case 0:
@@ -608,12 +745,16 @@ class Router {
           if (this.distance.next == from) {
             this.distance.dist = dist;
             this.distance.fd = Infinity;
+            this.logs.push("Query is from successor");
             this.state = 4;
             this.startDiffuse();
           } else {
+            this.logs.push("q not from successor");
             let min = this.minFrom();
             if (min[1] >= this.distance.fd) {
               // feasable distance not satisfied!
+              this.logRoutingTable();
+              this.logs.push("fd not satisfied");
               this.state = 2;
               this.startDiffuse();
             }
@@ -628,7 +769,11 @@ class Router {
             this.distance.dist =
               this.links.filter((x) => x.getOther(this) == from)[0].cost + dist;
             this.state = 3;
+            this.logs.push(
+              `q from successor, update distance to ${this.distance.dist}`
+            );
           } else {
+            this.logs.push("q not from successor");
             this.sendReply(from);
           }
         }
@@ -639,8 +784,12 @@ class Router {
             this.distance.dist =
               this.links.filter((x) => x.getOther(this) == from)[0].cost + dist;
             this.state = 3;
+            this.logs.push(
+              `q from successor, update distance to ${this.distance.dist}`
+            );
           } else {
             // what does distance increases mean??
+            this.logs.push("q not from successor");
             this.sendReply(from);
           }
         }
@@ -659,6 +808,7 @@ class Router {
       console.error("STATE 0 STILL RECEIVED REPL; IGNORE", this);
       return;
     }
+    this.logs.push(`got R=${dist} from ${from.id}`);
     this.queryStatus.set(from, dist);
     this.checkStateDone();
   }
@@ -672,7 +822,11 @@ class Router {
         break;
       }
     }
-    if (!flag) return;
+    if (!flag) {
+      let needs = nbs.filter((x) => !this.queryStatus.has(x)).map(x => x.id);
+      this.logs.push(`still waiting replies from ${needs.toString()}`);
+      return;
+    }
     this.state = 0;
     this.routingTable = this.queryStatus;
     this.queryStatus = new Map();
@@ -680,27 +834,38 @@ class Router {
     // this.sendLater.forEach((x) => this.sendReply(x));
     // this.sendLater = [];
     let tolater = this.distance.next;
+    this.logs.push("Got all replies needed, stop diffusing computation");
     this.runChecks();
+    this.logs.push(`send reply to previous succssor`);
     if (tolater != null) this.sendReply(tolater);
   }
 
   sendReply(target) {
+    this.logs.push(`send R=${this.distance.dist} to ${target.id}`);
     Router.nextStep.push([
       [
         (canvas) => {
           let t = this.coords.translate();
-          canvas.getContext("2d").fillStyle = "cyan";
           let t2 = target.coords.translate();
-          canvas.getContext("2d").fillStyle = "cyan";
-          canvas.getContext("2d").strokeStyle = "cyan";
-          drawArrow(canvas, t.x, t.y, t2.x, t2.y, arrowpadding);
-          canvas.getContext("2d").fillStyle = "black";
-          writeText(
+          drawArrow(
             canvas,
-            `R: ${this.distance.dist}`,
-            (t.x + t2.x) / 2,
-            (t.y + t2.y) / 2
+            t.x,
+            t.y,
+            t2.x,
+            t2.y,
+            (x) => {
+              let d = this.distance.dist == Infinity ? "∞" : this.distance.dist;
+              x.innerText = `R: ${d}`;
+            },
+            arrowpadding,
+            "ForestGreen"
           );
+          // writeText(
+          //   canvas,
+          //   `R: ${this.distance.dist}`,
+          //   (t.x + t2.x) / 2,
+          //   (t.y + t2.y) / 2
+          // );
         },
         this,
         target,
@@ -711,14 +876,24 @@ class Router {
   }
 }
 
+function simpleDraw() {
+  Router.allRouters[0].coords.translate();
+  let canvas = Router.newCanvas();
+  Link.drawAllLinks(canvas);
+  Router.drawAll(canvas);
+  let wr = document.createElement("div");
+  wr.className = "scrollable";
+  wr.appendChild(canvas);
+  let co = document.createElement("div");
+  co.className = "combouter";
+  co.appendChild(wr);
+  document.body.appendChild(co);
+}
+
 //**********************************TEST ***************************************/
 
 function example() {
-  /**
-   * @type {HTMLCanvasElement}
-   */
-  const canvas = document.getElementById("maincanvas");
-  const context = canvas.getContext("2d");
+  const canvas = Router.newCanvas();
 
   let a = new Router("a", new Coords(0, 0));
   let b = new Router("b", new Coords(1, 0));
@@ -742,6 +917,7 @@ function example() {
 
   Link.drawAllLinks(canvas);
   Router.drawAll(canvas);
+  document.body.appendChild(canvas);
 
   d.distance = new DistanceState(0, 0, d);
   d.ignoreall = true;
@@ -749,9 +925,9 @@ function example() {
   d.sendUpdates();
   Router.doStep();
 
-  context.clearRect(0, 0, canvas.width, canvas.height);
   Link.drawAllLinks(canvas);
   Router.drawAll(canvas);
+  document.body.appendChild(canvas);
 
   Router.draw = true;
   // d.links.filter((x) => x.getOther(d) == c)[0].updateSelf(8);
@@ -765,18 +941,13 @@ function example() {
   n.removeSelf();
   Router.doStep();
 
-  //   context.clearRect(0, 0, canvas.width, canvas.height);
+  //
   //   Link.drawAllLinks(canvas);
   //   Router.drawAll(canvas);
 }
 
 function example2() {
-  /**
-   * @type {HTMLCanvasElement}
-   */
-  const canvas = document.getElementById("maincanvas");
-  const context = canvas.getContext("2d");
-
+  const canvas = Router.newCanvas();
   let a = new Router("a", new Coords(0, 0));
   let b = new Router("b", new Coords(0, 2));
   let c = new Router("c", new Coords(1, 0));
@@ -794,6 +965,7 @@ function example2() {
 
   Link.drawAllLinks(canvas);
   Router.drawAll(canvas);
+  document.body.appendChild(canvas);
 
   j.distance = new DistanceState(0, 0, j);
   j.ignoreall = true;
@@ -801,25 +973,20 @@ function example2() {
   j.sendUpdates();
   Router.doStep();
 
-  context.clearRect(0, 0, canvas.width, canvas.height);
   Link.drawAllLinks(canvas);
   Router.drawAll(canvas);
+  document.body.appendChild(canvas);
 
   Router.draw = true;
   j.links.filter((x) => x.getOther(j) == c)[0].updateSelf(20);
   Router.doStep();
-  //   context.clearRect(0, 0, canvas.width, canvas.height);
+  //
   //   Link.drawAllLinks(canvas);
   //   Router.drawAll(canvas);
 }
 
 function example3() {
-  /**
-   * @type {HTMLCanvasElement}
-   */
-  const canvas = document.getElementById("maincanvas");
-  const context = canvas.getContext("2d");
-
+  const canvas = Router.newCanvas();
   let a = new Router("a", new Coords(0, 1));
   let b = new Router("b", new Coords(0, 0));
   let c = new Router("c", new Coords(1, 0));
@@ -838,6 +1005,7 @@ function example3() {
 
   Link.drawAllLinks(canvas);
   Router.drawAll(canvas);
+  document.body.appendChild(canvas);
 
   d.distance = new DistanceState(0, 0, d);
   d.ignoreall = true;
@@ -845,26 +1013,21 @@ function example3() {
   d.sendUpdates();
   Router.doStep();
 
-  context.clearRect(0, 0, canvas.width, canvas.height);
   Link.drawAllLinks(canvas);
   Router.drawAll(canvas);
+  document.body.appendChild(canvas);
 
   Router.draw = true;
   d.links.filter((x) => x.getOther(d) == c)[0].removeSelf();
   Router.doStep();
 
-  //   context.clearRect(0, 0, canvas.width, canvas.height);
+  //
   //   Link.drawAllLinks(canvas);
   //   Router.drawAll(canvas);
 }
 
 function example4() {
-  /**
-   * @type {HTMLCanvasElement}
-   */
-  const canvas = document.getElementById("maincanvas");
-  const context = canvas.getContext("2d");
-
+  const canvas = Router.newCanvas();
   let a = new Router("a", new Coords(1, 0));
   let b = new Router("b", new Coords(1, 1));
   let c = new Router("c", new Coords(2, 0));
@@ -887,6 +1050,7 @@ function example4() {
 
   Link.drawAllLinks(canvas);
   Router.drawAll(canvas);
+  document.body.appendChild(canvas);
 
   j.distance = new DistanceState(0, 0, j);
   j.ignoreall = true;
@@ -894,26 +1058,20 @@ function example4() {
   j.sendUpdates();
   Router.doStep();
 
-  context.clearRect(0, 0, canvas.width, canvas.height);
   Link.drawAllLinks(canvas);
   Router.drawAll(canvas);
+  document.body.appendChild(canvas);
 
   Router.draw = true;
   j.links.filter((x) => x.getOther(j) == c)[0].removeSelf();
   j.links.filter((x) => x.getOther(j) == d)[0].removeSelf();
   Router.doStep();
-  //   context.clearRect(0, 0, canvas.width, canvas.height);
+  //
   //   Link.drawAllLinks(canvas);
   //   Router.drawAll(canvas);
 }
 
 function example6() {
-  /**
-   * @type {HTMLCanvasElement}
-   */
-  const canvas = document.getElementById("maincanvas");
-  const context = canvas.getContext("2d");
-
   let a = new Router("a", new Coords(0, 0));
   let b = new Router("b", new Coords(0, 2));
   let c = new Router("c", new Coords(1, 0));
@@ -941,8 +1099,7 @@ function example6() {
   Link.setupLinks();
   Router.initRoutingTableAll();
 
-  Link.drawAllLinks(canvas);
-  Router.drawAll(canvas);
+  simpleDraw();
 
   j.distance = new DistanceState(0, 0, j);
   j.ignoreall = true;
@@ -950,9 +1107,7 @@ function example6() {
   j.sendUpdates();
   Router.doStep();
 
-  context.clearRect(0, 0, canvas.width, canvas.height);
-  Link.drawAllLinks(canvas);
-  Router.drawAll(canvas);
+  simpleDraw();
 
   Router.draw = true;
   j.links.filter((x) => x.getOther(j) == c)[0].updateSelf(20); // or removeSelf() to remove link
